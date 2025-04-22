@@ -58,8 +58,12 @@ class Feed extends Component {
         return res.json();
       })
       .then((resData) => {
+        //cargo los POSTS, y luego los modifico un poco antes de pasarlo al state!
         this.setState({
-          posts: resData.posts,
+          posts: resData.posts.map((post) => {
+            return { ...post, imagePath: post.imageUrl };
+          }),
+
           totalPosts: resData.totalItems,
           postsLoading: false,
         });
@@ -114,7 +118,8 @@ class Feed extends Component {
     let url = "http://localhost:8080/feed/post";
     let method = "POST";
     if (this.state.editPost) {
-      url = "URL";
+      url = "http://localhost:8080/feed/post/" + this.state.editPost._id;
+      method = "PUT";
     }
 
     fetch(url, {

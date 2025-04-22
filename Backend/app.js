@@ -15,7 +15,8 @@ const fileStorage = multer.diskStorage({
     cb(null, "images");
   },
   filename: (req, file, cb) => {
-    cb(null, uuidv4());
+    const ext = path.extname(file.originalname); // obtiene la extensión (incluye el punto)
+    cb(null, uuidv4() + ext); // concatena el uuid con la extensión
   },
 });
 

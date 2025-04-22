@@ -27,4 +27,19 @@ router.post(
 
 router.get("/post/:postId", feedController.getPost);
 
+router.put(
+  "/post/:postId",
+  [
+    body("title")
+      .trim()
+      .isLength({ min: 5 })
+      .withMessage("Title is too short!"),
+    body("content")
+      .trim()
+      .isLength({ min: 5 })
+      .withMessage("Content is too short!"),
+  ],
+  feedController.updatePost
+);
+
 module.exports = router;
