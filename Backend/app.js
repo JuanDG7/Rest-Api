@@ -2,7 +2,8 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const feedRoutes = require("./routes/feed");
-const { Result } = require("express-validator");
+const authRoutes = require("./routes/auth");
+
 const path = require("path");
 require("dotenv").config();
 const multer = require("multer");
@@ -50,6 +51,7 @@ app.use((req, res, next) => {
 });
 
 app.use("/feed", feedRoutes);
+app.use("/auth", authRoutes);
 
 app.use((error, req, res, next) => {
   const status = error.statusCode || 500;
@@ -60,7 +62,7 @@ app.use((error, req, res, next) => {
 
 mongoose
   .connect(process.env.MONGO_URI)
-  .then((Result) => {
+  .then((result) => {
     console.log("Connected to MongoDB");
     app.listen(8080);
   })

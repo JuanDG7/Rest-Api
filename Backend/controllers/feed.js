@@ -4,11 +4,22 @@ const path = require("path");
 const Post = require("../models/post");
 
 exports.getPosts = (req, res, next) => {
+  const currentPage = req.query.page || 1; // get the current page from query params, default to 1
+  const perPage = 2; // number of posts per lastPage
+  let totalItems; // total number of posts
   Post.find()
+    .countDocuments()
+    .then((count) => {
+      totalItems = count; // get the total number of posts
+      return Post.find()
+        .skip((currentPage - 1) * perPage) // skip the posts of previous pages
+        .limit(perPage); // limit the number of posts to perPage
+    })
     .then((posts) => {
       res.status(200).json({
         message: "Fetched posts successfully.",
         posts: posts,
+        totalItems: totalItems,
       });
     })
     .catch((err) => {
@@ -16,7 +27,7 @@ exports.getPosts = (req, res, next) => {
         err.statusCode = 500;
       }
       next(err);
-    });
+    }); // handle errors
 };
 
 exports.createPost = (req, res, next) => {
@@ -116,6 +127,29 @@ exports.updatePost = (req, res, next) => {
     })
     .then((result) => {
       res.status(200).json({ message: "Post updated!", post: result });
+    })
+    .catch((err) => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    });
+};
+
+exports.deletePost = (req, res, next) => {
+  const postId = req.params.postId;
+  Post.findById(postId)
+    .then((post) => {
+      if (!post) {
+        const error = new Error("Could not find post.");
+        error.statusCode = 404;
+        throw error;
+      }
+      clearImage(post.imageUrl); // delete the image
+      return Post.findByIdAndDelete(postId);
+    })
+    .then((result) => {
+      res.status(200).json({ message: "Deleted post." });
     })
     .catch((err) => {
       if (!err.statusCode) {
