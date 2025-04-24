@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const feedRoutes = require("./routes/feed");
 const authRoutes = require("./routes/auth");
 
+// esta version es antes dle async await
 const path = require("path");
 require("dotenv").config();
 const multer = require("multer");
