@@ -130,6 +130,12 @@ exports.updatePost = (req, res, next) => {
         throw error;
       }
 
+      if (post.creator.toString() !== req.userId) {
+        const error = new Error("Not authorizedeeeeee!");
+        error.statusCode = 403;
+        throw error;
+      }
+
       if (imageUrl !== post.imageUrl) {
         clearImage(post.imageUrl); // delete the old image
       }
@@ -158,11 +164,25 @@ exports.deletePost = (req, res, next) => {
         error.statusCode = 404;
         throw error;
       }
+
+      if (post.creator.toString() !== req.userId) {
+        const error = new Error("Not authorizedeeeeee!");
+        error.statusCode = 403;
+        throw error;
+      }
+
       clearImage(post.imageUrl); // delete the image
       return Post.findByIdAndDelete(postId);
     })
     .then((result) => {
-      res.status(200).json({ message: "Deleted post." });
+      return User.findById(req.userId); // find the user who created the post
+    })
+    .then((user) => {
+      user.posts.pull(postId); // remove the post from the user's posts
+      return user.save(); // save the user
+    })
+    .then((result) => {
+      res.status(200).json({ message: "Post deleted!" });
     })
     .catch((err) => {
       if (!err.statusCode) {
