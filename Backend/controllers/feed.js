@@ -1,7 +1,9 @@
 const { validationResult } = require("express-validator");
 const fs = require("fs");
 const path = require("path");
+//hola
 const Post = require("../models/post");
+const User = require("../models/user"); // import the User model
 
 exports.getPosts = (req, res, next) => {
   const currentPage = req.query.page || 1; // get the current page from query params, default to 1
@@ -49,22 +51,33 @@ exports.createPost = (req, res, next) => {
     title: title,
     content: content,
     imageUrl: imageUrl,
-    creator: { name: "Maximilian" },
+    creator: req.userId, //aca le paso un string pero al crear el post se vuelve a convertir en un objectId
   });
   post
     .save()
     .then((result) => {
-      console.log(result);
+      return User.findById(req.userId); // find the user who created the post
+    })
+    .then((user) => {
+      creator = user; // get the user who created the post
+      user.posts.push(post); // add the post to the user's posts
+      return user.save(); // save the user
+    })
+    .then((result) => {
       res.status(201).json({
         message: "Post created successfully!",
-        post: result,
+        post: post,
+        creator: {
+          _id: creator._id,
+          name: creator.name,
+        },
       });
     })
     .catch((err) => {
       if (!err.statusCode) {
         err.statusCode = 500;
       }
-      next(err);
+      next(err); // handle errors
     });
 };
 
