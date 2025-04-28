@@ -1,16 +1,18 @@
+const path = require("path");
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
-const feedRoutes = require("./routes/feed");
-const authRoutes = require("./routes/auth");
-
-//// version antes del async await
-const path = require("path");
-require("dotenv").config();
 const multer = require("multer");
+
+const graphqlSchema = require("./graphql/schema");
+const graphqlResolver = require("./graphql/resolvers");
+const auth = require("./middleware/auth");
+//// version antes del async await
+require("dotenv").config();
 const { v4: uuidv4 } = require("uuid");
 
 const app = express();
+const { graphqlHTTP } = require("express-graphql");
 
 const fileStorage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -48,11 +50,31 @@ app.use((req, res, next) => {
     "OPTIONS, GET, POST, PUT, PATCH, DELETE"
   );
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
   next();
 });
 
-app.use("/feed", feedRoutes);
-app.use("/auth", authRoutes);
+app.use(auth);
+
+app.use(
+  "/graphql",
+  graphqlHTTP({
+    schema: graphqlSchema,
+    rootValue: graphqlResolver,
+    graphiql: true,
+    formatError(err) {
+      if (!err.originalError) {
+        return err;
+      }
+      const data = err.originalError.data;
+      const message = err.message || "An error ocurred here!";
+      const code = err.originalError.code || 500;
+      return { message: message, status: code, data: data };
+    },
+  })
+);
 
 app.use((error, req, res, next) => {
   const status = error.statusCode || 500;
