@@ -33,6 +33,11 @@ updatedAt:String!
     imageUrl:String!
   }
 
+  type PostData{
+    posts:[Post!]!
+    totalPosts:Int!
+    }
+
   type AuthData{
   token:String!
   userId:String!
@@ -41,6 +46,7 @@ updatedAt:String!
 
   type RootQuery {
     login(email:String!,password:String!):AuthData
+    posts(page:Int):PostData
   }
 
 

@@ -1,4 +1,5 @@
 const path = require("path");
+const fs = require("fs");
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
@@ -56,6 +57,12 @@ app.use((req, res, next) => {
   next();
 });
 
+app.put("/post-image", (req, res, next) => {
+  if (!req.file) {
+    return res.status(200).json({ message: "No file provided!" });
+  }
+});
+
 app.use(auth);
 
 app.use(
@@ -92,3 +99,10 @@ mongoose
   .catch((err) => {
     console.log(err);
   });
+
+const clearImage = (filePath) => {
+  filePath = path.join(__dirname, "..", filePath); // get the absolute path\
+  fs.unlink(filePath, (err) => {
+    console.log(err);
+  });
+};
